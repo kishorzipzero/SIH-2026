@@ -5,13 +5,16 @@ interface Props {
   onChange: (ctx: ProductContext) => void;
 }
 
+const fieldClass =
+  "rounded-lg border border-ink-200 px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100";
+
 export function CategorySelector({ value, onChange }: Props) {
   return (
-    <div className="grid grid-cols-2 gap-3 text-sm">
+    <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
       <label className="flex flex-col gap-1">
-        <span className="font-medium text-slate-700">Category</span>
+        <span className="font-medium text-ink-700">Category</span>
         <select
-          className="rounded border border-slate-300 px-2 py-1.5"
+          className={fieldClass}
           value={value.category}
           onChange={(e) =>
             onChange({
@@ -27,9 +30,9 @@ export function CategorySelector({ value, onChange }: Props) {
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="font-medium text-slate-700">Origin</span>
+        <span className="font-medium text-ink-700">Origin</span>
         <select
-          className="rounded border border-slate-300 px-2 py-1.5"
+          className={fieldClass}
           value={value.origin}
           onChange={(e) =>
             onChange({ ...value, origin: e.target.value as ProductContext["origin"] })
@@ -40,18 +43,20 @@ export function CategorySelector({ value, onChange }: Props) {
         </select>
       </label>
 
-      <label className="flex items-center gap-2">
+      <label className="flex items-center gap-2 text-ink-700">
         <input
           type="checkbox"
+          className="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-400"
           checked={value.perishable}
           onChange={(e) => onChange({ ...value, perishable: e.target.checked })}
         />
         <span>Perishable / time-sensitive (needs best-before date)</span>
       </label>
 
-      <label className="flex items-center gap-2">
+      <label className="flex items-center gap-2 text-ink-700">
         <input
           type="checkbox"
+          className="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-400"
           checked={value.hasUnitSalePrice}
           onChange={(e) => onChange({ ...value, hasUnitSalePrice: e.target.checked })}
         />

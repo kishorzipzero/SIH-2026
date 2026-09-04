@@ -10,8 +10,19 @@ export const db = new Database(path.join(dataDir, "labelcheck.sqlite"));
 db.pragma("journal_mode = WAL");
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('inspector', 'manufacturer')),
+    organization TEXT,
+    created_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS scans (
     id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
     created_at TEXT NOT NULL,
     mode TEXT NOT NULL CHECK (mode IN ('self-check', 'inspector')),
     batch_id TEXT,
@@ -28,10 +39,22 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_scans_batch ON scans(batch_id);
   CREATE INDEX IF NOT EXISTS idx_scans_mode ON scans(mode);
+  CREATE INDEX IF NOT EXISTS idx_scans_user ON scans(user_id);
 `);
+
+export interface UserRow {
+  id: string;
+  name: string;
+  email: string;
+  password_hash: string;
+  role: "inspector" | "manufacturer";
+  organization: string | null;
+  created_at: string;
+}
 
 export interface ScanRow {
   id: string;
+  user_id: string;
   created_at: string;
   mode: "self-check" | "inspector";
   batch_id: string | null;

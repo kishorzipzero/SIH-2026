@@ -1,26 +1,78 @@
-import { useState } from "react";
-import { ModeSwitcher } from "./components/ModeSwitcher";
-import { SelfCheckView } from "./components/SelfCheckView";
-import { InspectorDashboard } from "./components/InspectorDashboard";
+import { AnimatePresence } from "framer-motion";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { Navbar } from "./components/Navbar";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { PageTransition } from "./components/ui/PageTransition";
+import { AuthProvider } from "./context/AuthContext";
+import { InspectorDashboard } from "./pages/InspectorDashboard";
+import { Landing } from "./pages/Landing";
+import { Login } from "./pages/Login";
+import { ManufacturerDashboard } from "./pages/ManufacturerDashboard";
+import { Register } from "./pages/Register";
 
-type Mode = "self-check" | "inspector";
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/"
+          element={
+            <PageTransition>
+              <Landing />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PageTransition>
+              <Login />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PageTransition>
+              <Register />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute role="manufacturer">
+              <PageTransition>
+                <ManufacturerDashboard />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inspector"
+          element={
+            <ProtectedRoute role="inspector">
+              <PageTransition>
+                <InspectorDashboard />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </AnimatePresence>
+  );
+}
 
 export default function App() {
-  const [mode, setMode] = useState<Mode>("self-check");
-
   return (
-    <div className="min-h-screen bg-slate-50 pb-16">
-      <header className="border-b border-slate-200 bg-white px-6 py-4">
-        <h1 className="text-xl font-bold text-slate-900">LabelCheck</h1>
-        <p className="text-sm text-slate-500">
-          Legal Metrology (Packaged Commodities) Rules, 2011 — Rule 6 label compliance scanner
-        </p>
-      </header>
-
-      <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-6">
-        <ModeSwitcher mode={mode} onChange={setMode} />
-        {mode === "self-check" ? <SelfCheckView /> : <InspectorDashboard />}
-      </main>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="min-h-screen bg-ink-50">
+          <Navbar />
+          <AnimatedRoutes />
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

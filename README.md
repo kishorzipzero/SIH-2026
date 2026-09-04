@@ -11,10 +11,22 @@ pass / fail / unclear with the specific clause it maps to.
 
 - **Backend** — Node.js + Express + TypeScript, `tesseract.js` for OCR
   (English + Hindi, runs locally, no API key required), `better-sqlite3` for
-  storing scans and building violation reports.
-- **Frontend** — React + TypeScript + Vite + Tailwind CSS. Two modes:
-  Self-Check (single product, pre-market) and Inspector (batch scan + CSV
-  violation report export).
+  storing users/scans and building violation reports, JWT auth (`jsonwebtoken`
+  + `bcryptjs`).
+- **Frontend** — React + TypeScript + Vite + Tailwind CSS + Framer Motion,
+  routed with `react-router-dom`. A public landing page, login/register, and
+  two role-gated dashboards: **Manufacturer** (pre-market self-check + scan
+  history/stats) and **Inspector** (batch shelf scan + CSV violation report).
+
+## Auth model
+
+Accounts pick a role at registration — `manufacturer` or `inspector` — which
+is baked into their JWT and used server-side to route every scan into the
+right mode (a manufacturer's uploads can never write into another user's
+inspector violation log). All scan/report endpoints require
+`Authorization: Bearer <token>` and are scoped to the authenticated user.
+`JWT_SECRET` has a dev fallback in `backend/src/auth/jwt.ts` — set a real one
+via environment variable before deploying anywhere real.
 
 ## Running locally
 
@@ -66,11 +78,20 @@ backend/
   src/rules/checklist.ts       Rule 6 checklist definitions + extraction regexes
   src/rules/fontSizeHeuristic.ts  Relative MRP font-size heuristic
   src/rules/engine.ts          Runs checklist against OCR output -> pass/fail/unclear
-  src/routes/scan.ts           POST /api/scan
-  src/routes/reports.ts        GET /api/reports, /api/reports/violations
-  src/db.ts                    SQLite schema/connection
+  src/auth/jwt.ts              JWT sign/verify
+  src/middleware/auth.ts       requireAuth / requireRole middleware
+  src/routes/auth.ts           POST /api/auth/register, /login, GET /me
+  src/routes/scan.ts           POST /api/scan (auth required)
+  src/routes/reports.ts        GET /api/reports, /stats, /violations (auth required, user-scoped)
+  src/db.ts                    SQLite schema/connection (users, scans)
 frontend/
-  src/components/SelfCheckView.tsx     Manufacturer/packer self-check mode
-  src/components/InspectorDashboard.tsx Batch scan + violation report + CSV export
-  src/components/ResultsScreen.tsx     Per-field pass/fail/unclear results screen
+  src/context/AuthContext.tsx      Auth state, login/register/logout
+  src/pages/Landing.tsx            Public marketing page
+  src/pages/Login.tsx, Register.tsx
+  src/pages/ManufacturerDashboard.tsx  Stats + self-check form + scan history
+  src/pages/InspectorDashboard.tsx     Stats + batch-scan panel
+  src/components/ScanForm.tsx      Shared scan widget (used by both dashboards)
+  src/components/BatchScanPanel.tsx  Inspector batch log + violation report + CSV export
+  src/components/ResultsScreen.tsx   Per-field pass/fail/unclear results screen
+  src/components/ProtectedRoute.tsx  Role-gated route wrapper
 ```

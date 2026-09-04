@@ -6,6 +6,7 @@ import { extractText } from "../ocr/extractText";
 import { runComplianceCheck } from "../rules/engine";
 import { ProductContext } from "../rules/types";
 import { db } from "../db";
+import { requireAuth } from "../middleware/auth";
 
 const uploadDir = path.join(__dirname, "..", "..", "uploads");
 
@@ -40,14 +41,16 @@ function parseContext(body: Record<string, any>): ProductContext {
   return { category, origin, perishable, hasUnitSalePrice };
 }
 
-scanRouter.post("/", upload.single("image"), async (req, res) => {
+scanRouter.post("/", requireAuth, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image file uploaded (field name: image)" });
     }
 
     const ctx = parseContext(req.body);
-    const mode = req.body.mode === "inspector" ? "inspector" : "self-check";
+    // Mode is derived from the authenticated user's role, not client input,
+    // so a manufacturer account can't write into the inspector violation log.
+    const mode = req.user!.role === "inspector" ? "inspector" : "self-check";
     const batchId = mode === "inspector" ? req.body.batchId || null : null;
     const productName = req.body.productName || null;
 
@@ -56,10 +59,11 @@ scanRouter.post("/", upload.single("image"), async (req, res) => {
 
     const id = uuid();
     db.prepare(
-      `INSERT INTO scans (id, created_at, mode, batch_id, product_name, category, origin, perishable, has_unit_sale_price, image_path, mean_confidence, summary_json, fields_json)
-       VALUES (@id, @created_at, @mode, @batch_id, @product_name, @category, @origin, @perishable, @has_unit_sale_price, @image_path, @mean_confidence, @summary_json, @fields_json)`
+      `INSERT INTO scans (id, user_id, created_at, mode, batch_id, product_name, category, origin, perishable, has_unit_sale_price, image_path, mean_confidence, summary_json, fields_json)
+       VALUES (@id, @user_id, @created_at, @mode, @batch_id, @product_name, @category, @origin, @perishable, @has_unit_sale_price, @image_path, @mean_confidence, @summary_json, @fields_json)`
     ).run({
       id,
+      user_id: req.user!.sub,
       created_at: new Date().toISOString(),
       mode,
       batch_id: batchId,

@@ -1,6 +1,7 @@
 export type ProductCategory = "food" | "non-food";
 export type Origin = "domestic" | "imported";
 export type CheckStatus = "pass" | "fail" | "unclear";
+export type Role = "inspector" | "manufacturer";
 
 export interface ProductContext {
   category: ProductCategory;
@@ -42,4 +43,22 @@ export interface StoredScan extends Omit<ScanResponse, "ocrText"> {
   createdAt: string;
   productName: string | null;
   imagePath: string | null;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  organization: string | null;
+}
+
+export interface DashboardStats {
+  totalScans: number;
+  fullyCompliant: number;
+  withViolations: number;
+  totalFails: number;
+  totalUnclear: number;
+  topViolatedFields: { label: string; count: number }[];
+  recentScans: StoredScan[];
 }

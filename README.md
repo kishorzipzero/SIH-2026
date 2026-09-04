@@ -1,5 +1,7 @@
 # LabelCheck (SIH26034)
 
+[![GitHub](https://img.shields.io/badge/GitHub-kishorzipzero%2FSIH--2026-181717?logo=github&logoColor=white)](https://github.com/kishorzipzero/SIH-2026)
+
 Scan-and-verify compliance checker for the Legal Metrology (Packaged Commodities)
 Rules, 2011, Rule 6 mandatory label declarations. A photo of a product label is
 OCR'd and checked field-by-field against the checklist; every result is tagged

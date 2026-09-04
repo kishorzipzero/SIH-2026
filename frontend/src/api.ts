@@ -1,8 +1,11 @@
 import {
+  AngleId,
   DashboardStats,
+  InspectionResponse,
   ProductContext,
   Role,
   ScanResponse,
+  StoredInspection,
   StoredScan,
   User,
 } from "./types";
@@ -105,4 +108,34 @@ export async function fetchScans(mode?: "self-check" | "inspector"): Promise<Sto
   const qs = mode ? `?mode=${mode}` : "";
   const res = await authedFetch(`/api/reports${qs}`);
   return unwrapJson(res, "Failed to fetch scan history");
+}
+
+export interface SubmitInspectionArgs {
+  photos: Partial<Record<AngleId, File>>;
+  productName?: string;
+  context: ProductContext;
+}
+
+export async function submitInspection({
+  photos,
+  productName,
+  context,
+}: SubmitInspectionArgs): Promise<InspectionResponse> {
+  const form = new FormData();
+  for (const [angle, file] of Object.entries(photos)) {
+    if (file) form.append(angle, file);
+  }
+  if (productName) form.append("productName", productName);
+  form.append("category", context.category);
+  form.append("origin", context.origin);
+  form.append("perishable", String(context.perishable));
+  form.append("hasUnitSalePrice", String(context.hasUnitSalePrice));
+
+  const res = await authedFetch("/api/inspections/multi-angle", { method: "POST", body: form });
+  return unwrapJson(res, "Multi-angle inspection failed");
+}
+
+export async function fetchInspections(): Promise<StoredInspection[]> {
+  const res = await authedFetch("/api/inspections");
+  return unwrapJson(res, "Failed to fetch inspection history");
 }

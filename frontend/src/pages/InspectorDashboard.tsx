@@ -2,13 +2,17 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { fetchStats } from "../api";
 import { BatchScanPanel } from "../components/BatchScanPanel";
+import { MultiAngleForm } from "../components/MultiAngleForm";
 import { StatCard } from "../components/ui/StatCard";
 import { useAuth } from "../context/AuthContext";
 import { DashboardStats } from "../types";
 
+type Tab = "batch" | "multi-angle";
+
 export function InspectorDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [tab, setTab] = useState<Tab>("batch");
 
   async function refresh() {
     const s = await fetchStats();
@@ -26,7 +30,7 @@ export function InspectorDashboard() {
           Inspector console — {user?.name?.split(" ")[0]}
         </h1>
         <p className="text-sm text-ink-500">
-          Batch-scan a shelf and generate a violation report for enforcement.
+          Batch-scan a shelf, or run a full 8-angle inspection on a single product.
         </p>
       </motion.div>
 
@@ -39,7 +43,30 @@ export function InspectorDashboard() {
         </div>
       )}
 
-      <BatchScanPanel onScan={refresh} />
+      <div className="mb-5 flex gap-2">
+        <button
+          onClick={() => setTab("batch")}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+            tab === "batch" ? "bg-ink-900 text-white" : "bg-white text-ink-600 hover:bg-ink-100"
+          }`}
+        >
+          Batch shelf scan
+        </button>
+        <button
+          onClick={() => setTab("multi-angle")}
+          className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+            tab === "multi-angle" ? "bg-ink-900 text-white" : "bg-white text-ink-600 hover:bg-ink-100"
+          }`}
+        >
+          8-angle inspection
+        </button>
+      </div>
+
+      {tab === "batch" ? (
+        <BatchScanPanel onScan={refresh} />
+      ) : (
+        <MultiAngleForm onComplete={refresh} />
+      )}
     </div>
   );
 }

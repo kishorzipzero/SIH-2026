@@ -62,3 +62,70 @@ export interface DashboardStats {
   topViolatedFields: { label: string; count: number }[];
   recentScans: StoredScan[];
 }
+
+export const ANGLES = [
+  "front",
+  "back",
+  "left",
+  "right",
+  "top",
+  "bottom",
+  "diagonal_1",
+  "diagonal_2",
+] as const;
+
+export type AngleId = (typeof ANGLES)[number];
+
+export const ANGLE_LABELS: Record<AngleId, string> = {
+  front: "Front",
+  back: "Back",
+  left: "Left side",
+  right: "Right side",
+  top: "Top",
+  bottom: "Bottom",
+  diagonal_1: "Diagonal view 1",
+  diagonal_2: "Diagonal view 2",
+};
+
+export interface ImageQualityMetrics {
+  meanBrightness: number;
+  contrast: number;
+  width: number;
+  height: number;
+}
+
+export interface AngleResult {
+  angle: AngleId;
+  label: string;
+  imagePath: string;
+  overallConfidence: number;
+  summary: ScanSummary;
+  fields: FieldResult[];
+  quality: ImageQualityMetrics;
+}
+
+export interface FieldDiscrepancy {
+  fieldId: string;
+  label: string;
+  clauseRef: string;
+  valuesByAngle: { angle: AngleId; rawValue: string }[];
+}
+
+export interface QualityFlag {
+  angle: AngleId;
+  reason: string;
+}
+
+export interface InspectionResponse {
+  inspectionId: string;
+  productName: string | null;
+  productContext: ProductContext;
+  verdict: "consistent" | "review_needed";
+  angles: AngleResult[];
+  discrepancies: FieldDiscrepancy[];
+  qualityFlags: QualityFlag[];
+}
+
+export interface StoredInspection extends InspectionResponse {
+  createdAt: string;
+}

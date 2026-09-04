@@ -40,6 +40,23 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_scans_batch ON scans(batch_id);
   CREATE INDEX IF NOT EXISTS idx_scans_mode ON scans(mode);
   CREATE INDEX IF NOT EXISTS idx_scans_user ON scans(user_id);
+
+  CREATE TABLE IF NOT EXISTS inspections (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL,
+    product_name TEXT,
+    category TEXT NOT NULL,
+    origin TEXT NOT NULL,
+    perishable INTEGER NOT NULL,
+    has_unit_sale_price INTEGER NOT NULL,
+    verdict TEXT NOT NULL CHECK (verdict IN ('consistent', 'review_needed')),
+    angles_json TEXT NOT NULL,
+    discrepancies_json TEXT NOT NULL,
+    quality_flags_json TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_inspections_user ON inspections(user_id);
 `);
 
 export interface UserRow {
@@ -67,4 +84,19 @@ export interface ScanRow {
   mean_confidence: number;
   summary_json: string;
   fields_json: string;
+}
+
+export interface InspectionRow {
+  id: string;
+  user_id: string;
+  created_at: string;
+  product_name: string | null;
+  category: string;
+  origin: string;
+  perishable: number;
+  has_unit_sale_price: number;
+  verdict: "consistent" | "review_needed";
+  angles_json: string;
+  discrepancies_json: string;
+  quality_flags_json: string;
 }

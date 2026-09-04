@@ -5,6 +5,7 @@ import fs from "fs";
 import { scanRouter } from "./routes/scan";
 import { reportsRouter } from "./routes/reports";
 import { authRouter } from "./routes/auth";
+import { inspectionsRouter } from "./routes/inspections";
 
 const uploadDir = path.join(__dirname, "..", "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -18,6 +19,7 @@ app.get("/api/health", (_req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRouter);
 app.use("/api/scan", scanRouter);
 app.use("/api/reports", reportsRouter);
+app.use("/api/inspections", inspectionsRouter);
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
 app.listen(PORT, () => {
